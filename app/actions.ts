@@ -1,27 +1,39 @@
 "use server";
 
-import fs from "fs";
-import path from "path";
+import { google } from "googleapis";
 
-const DATA_FILE = path.join(process.cwd(), "data", "waitlist.json");
+const SPREADSHEET_ID = process.env.GOOGLE_SHEETS_SPREADSHEET_ID!;
+const SHEET_NAME = "waitlist";
 
-function ensureDataFile() {
-  const dir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, "[]");
+function getAuth() {
+  return new google.auth.GoogleAuth({
+    credentials: {
+      client_email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
+      private_key: process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    },
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+  });
 }
 
-function readEntries(): { email: string; createdAt: string }[] {
+async function getRows(): Promise<string[][]> {
   try {
-    ensureDataFile();
-    return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+    const auth = getAuth();
+    const sheets = google.sheets({ version: "v4", auth });
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${SHEET_NAME}!A:B`,
+    });
+    return (res.data.values as string[][]) ?? [];
   } catch {
     return [];
   }
 }
 
 export async function getWaitlistCount(): Promise<number> {
-  return readEntries().length;
+  const rows = await getRows();
+  // 첫 번째 행이 헤더인 경우 제외
+  const dataRows = rows.filter((r) => r[0] !== "email");
+  return dataRows.length;
 }
 
 export async function joinWaitlist(
@@ -42,24 +54,45 @@ export async function joinWaitlist(
   }
 
   try {
-    const entries = readEntries();
+    const auth = getAuth();
+    const sheets = google.sheets({ version: "v4", auth });
+
+    // 기존 이메일 중복 확인
+    const rows = await getRows();
+    const dataRows = rows.filter((r) => r[0] !== "email");
     const normalized = trimmed.toLowerCase();
 
-    if (entries.some((e) => e.email.toLowerCase() === normalized)) {
+    if (dataRows.some((r) => r[0]?.toLowerCase() === normalized)) {
       return {
         success: true,
-        count: entries.length,
+        count: dataRows.length,
         message: "이미 신청하셨어요! 출시 시 가장 먼저 알려드릴게요 🎉",
       };
     }
 
-    entries.push({ email: normalized, createdAt: new Date().toISOString() });
-    ensureDataFile();
-    fs.writeFileSync(DATA_FILE, JSON.stringify(entries, null, 2));
+    // 헤더가 없으면 추가
+    if (rows.length === 0) {
+      await sheets.spreadsheets.values.append({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${SHEET_NAME}!A:B`,
+        valueInputOption: "RAW",
+        requestBody: { values: [["email", "createdAt"]] },
+      });
+    }
+
+    // 새 이메일 추가
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${SHEET_NAME}!A:B`,
+      valueInputOption: "RAW",
+      requestBody: {
+        values: [[normalized, new Date().toISOString()]],
+      },
+    });
 
     return {
       success: true,
-      count: entries.length,
+      count: dataRows.length + 1,
       message: "신청 완료! 출시 시 가장 먼저 초대해드릴게요 🎉",
     };
   } catch (err) {
