@@ -1,4 +1,6 @@
 import { getWaitlistCount } from "@/app/actions";
+
+export const dynamic = "force-dynamic";
 import Nav from "@/components/main/nav";
 import Hero from "@/components/main/hero";
 import Problem from "@/components/main/problem";
