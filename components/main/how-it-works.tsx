@@ -4,7 +4,7 @@ const steps = [
   {
     number: "01",
     title: "회원가입",
-    description: "이메일 또는 소셜 계정으로 간단하게 시작해요.",
+    description: "이메일 또는 소셜 계정으로 간단하게 Ditto를 시작해봐요.",
     icon: "🚀",
   },
   {
@@ -22,7 +22,7 @@ const steps = [
   {
     number: "04",
     title: "AI 씬 생성",
-    description: "내 캐릭터가 등장하는 일러스트 씬이 자동으로 만들어져요.",
+    description: "내 캐릭터가 등장하는 일러스트가 자동으로 만들어져요.",
     icon: "🎨",
   },
   {
@@ -40,15 +40,9 @@ export default function HowItWorks() {
         {/* Section header */}
         <FadeIn>
           <div className="max-w-2xl mb-20">
-            <p className="text-violet-600 text-sm font-semibold tracking-widest uppercase mb-4">
-              사용법
-            </p>
-            <h2 className="text-4xl sm:text-5xl font-bold text-zinc-900 leading-tight">
-              5분이면 충분해요
-            </h2>
-            <p className="mt-5 text-zinc-500 text-lg">
-              가입부터 첫 포스팅까지, 복잡한 것 없어요.
-            </p>
+            <p className="text-violet-600 text-sm font-semibold tracking-widest uppercase mb-4">사용법</p>
+            <h2 className="text-4xl sm:text-5xl font-bold text-zinc-900 leading-tight">5분이면 충분해요</h2>
+            <p className="mt-5 text-zinc-500 text-lg">가입부터 첫 포스팅까지, 복잡한 것 없어요.</p>
           </div>
         </FadeIn>
 
@@ -72,12 +66,8 @@ export default function HowItWorks() {
                     </span>
                   </div>
 
-                  <h3 className="text-zinc-900 font-semibold text-base mb-2">
-                    {step.title}
-                  </h3>
-                  <p className="text-zinc-500 text-sm leading-relaxed">
-                    {step.description}
-                  </p>
+                  <h3 className="text-zinc-900 font-semibold text-base mb-2">{step.title}</h3>
+                  <p className="text-zinc-500 text-sm leading-relaxed">{step.description}</p>
                 </div>
               </FadeIn>
             ))}

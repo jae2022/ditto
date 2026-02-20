@@ -87,7 +87,7 @@ function SocialProof({ count }: { count: number }) {
       <p className="text-zinc-500 text-sm">
         {count > 0 ? (
           <>
-            <span className="text-zinc-900 font-semibold">{count}명</span>이 대기 중
+            <span className="text-zinc-900 font-semibold">{count}명</span>의 새로운 나 자신이 대기 중
           </>
         ) : (
           "첫 번째로 신청해보세요"
