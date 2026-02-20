@@ -3,7 +3,8 @@
 import { google } from "googleapis";
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEETS_SPREADSHEET_ID!;
-const SHEET_NAME = "waitlist";
+// 시트 이름을 지정하지 않으면 첫 번째 시트를 자동으로 사용
+const RANGE = "A:B";
 
 function getAuth() {
   return new google.auth.GoogleAuth({
@@ -21,7 +22,7 @@ async function getRows(): Promise<string[][]> {
     const sheets = google.sheets({ version: "v4", auth });
     const res = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_NAME}!A:B`,
+      range: RANGE,
     });
     return (res.data.values as string[][]) ?? [];
   } catch {
@@ -74,7 +75,7 @@ export async function joinWaitlist(
     if (rows.length === 0) {
       await sheets.spreadsheets.values.append({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A:B`,
+        range: RANGE,
         valueInputOption: "RAW",
         requestBody: { values: [["email", "createdAt"]] },
       });
@@ -83,7 +84,7 @@ export async function joinWaitlist(
     // 새 이메일 추가
     await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_NAME}!A:B`,
+      range: RANGE,
       valueInputOption: "RAW",
       requestBody: {
         values: [[normalized, new Date().toISOString()]],
